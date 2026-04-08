@@ -1,0 +1,72 @@
+-- 🔹 1. Total Orders per Customer
+SELECT
+    c.customer_name,
+    COUNT(o.orders_ID) AS total_orders
+FROM customers c
+LEFT JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_name;
+
+--------------------------------------------------
+
+-- 🔹 2. Customers with No Orders
+SELECT
+    c.customer_name
+FROM customers c
+LEFT JOIN orders o
+ON c.customer_id = o.customer_id
+WHERE o.customer_id IS NULL;
+
+--------------------------------------------------
+
+-- 🔹 3. Sales Segmentation
+SELECT 
+CASE 
+WHEN sales > 700 THEN 'High Sales'
+WHEN sales BETWEEN 300 AND 700 THEN 'Medium Sales'
+ELSE 'Low Sales' 
+END AS sales_category,
+COUNT(*) AS sales_count 
+FROM retail_sales
+GROUP BY sales_category;
+
+--------------------------------------------------
+
+-- 🔹 4. Top Customer per City
+SELECT *
+FROM (
+    SELECT
+        city,
+        customer_name,
+        sales,
+        ROW_NUMBER() OVER (
+            PARTITION BY city
+            ORDER BY sales DESC
+        ) AS rn
+    FROM retail_sales
+) t
+WHERE rn = 1;
+
+--------------------------------------------------
+
+-- 🔹 5. Sales Trend Analysis
+SELECT
+    order_date,
+    customer_name,
+    sales,
+    LAG(sales) OVER (ORDER BY order_date) AS previous_sale,
+    sales - LAG(sales) OVER (ORDER BY order_date) AS change_in_sales
+FROM retail_sales;
+
+--------------------------------------------------
+
+-- 🔹 6. Running Total by City
+SELECT
+    customer_name,
+    city,
+    sales,
+    SUM(sales) OVER (
+        PARTITION BY city
+        ORDER BY sales
+    ) AS running_total
+FROM retail_sales;
